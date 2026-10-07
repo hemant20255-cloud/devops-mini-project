@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        AWS_DEFAULT_REGION = 'ap-south-1'
+    }
+
     stages {
 
         stage('Checkout') {
@@ -22,48 +26,78 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir('terraform') {
-                    sh 'terraform init'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-devops']
+                ]) {
+                    dir('terraform') {
+                        sh 'terraform init'
+                    }
                 }
             }
         }
 
         stage('Terraform Validate') {
             steps {
-                dir('terraform') {
-                    sh 'terraform validate'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-devops']
+                ]) {
+                    dir('terraform') {
+                        sh 'terraform validate'
+                    }
                 }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                dir('terraform') {
-                    sh 'terraform plan'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-devops']
+                ]) {
+                    dir('terraform') {
+                        sh 'terraform plan'
+                    }
                 }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                dir('terraform') {
-                    sh 'terraform apply -auto-approve'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-devops']
+                ]) {
+                    dir('terraform') {
+                        sh 'terraform apply -auto-approve'
+                    }
                 }
             }
         }
 
         stage('Ansible Connectivity Test') {
             steps {
-                dir('ansible') {
-                    sh 'ansible web -m ping'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-devops']
+                ]) {
+                    dir('ansible') {
+                        sh 'ansible web -m ping'
+                    }
                 }
             }
         }
 
         stage('Ansible Deploy') {
             steps {
-                dir('ansible') {
-                    sh 'ansible-playbook site.yml'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-devops']
+                ]) {
+                    dir('ansible') {
+                        sh 'ansible-playbook site.yml'
+                    }
                 }
             }
         }
