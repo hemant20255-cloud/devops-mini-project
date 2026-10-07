@@ -1,0 +1,49 @@
+---
+- name: Configure web server
+  hosts: web
+  become: true
+
+  tasks:
+
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Enable Nginx
+      ansible.builtin.command:
+        cmd: systemctl enable nginx
+      changed_when: false
+
+    - name: Start Nginx
+      ansible.builtin.command:
+        cmd: systemctl start nginx
+      changed_when: false
+
+    - name: Remove default Nginx page
+      ansible.builtin.file:
+        path: /var/www/html/index.nginx-debian.html
+        state: absent
+
+    - name: Deploy website
+      ansible.builtin.copy:
+        src: ../website/index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Test Nginx configuration
+      ansible.builtin.command:
+        cmd: nginx -t
+      changed_when: false
+
+    - name: Reload Nginx
+      ansible.builtin.command:
+        cmd: systemctl reload nginx
+      changed_when: false
